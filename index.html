@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAANG DSA Roadmap Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fdfbf7; color: #1e293b; }
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; height: 300px; max-height: 350px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .check-transition { transition: all 0.3s ease; }
+    </style>
+    <!-- Chosen Palette: Warm Neutral (Stone/Orange/Indigo) - Minimalistic and focused on readability for long study sessions. -->
+    <!-- Application Structure Plan: 
+         1. Header: Quick motivational summary and global progress stats.
+         2. Strategy & Mindset Section: Before diving into code, users need the "How to Think" framework. This is presented as a visual step-by-step flow.
+         3. Dashboard Layout: 
+            - Left/Top: Interactive Roadmap (Accordion style). Users can expand topics and check off patterns/problems.
+            - Right/Bottom: Real-time Visualizations. A Radar chart showing topic balance/emphasis and a Progress Doughnut.
+            - "Pro Tips" sidebar or section for quick mental hooks.
+         4. Rationale: Learning DSA is overwhelming. Breaking it into expandable modules reduces cognitive load. Gamifying it with a progress bar keeps motivation high. 
+    -->
+    <!-- Visualization & Content Choices: 
+         1. Progress Doughnut (Chart.js): Goal -> Motivation. Shows % completed. Simple, standard, effective.
+         2. Topic Distribution (Chart.js Bar): Goal -> Overview. Shows which topics have the most weight/patterns to learn.
+         3. Step-by-Step Flow (HTML/CSS): Goal -> Process Guide. Visualizes the 6-step problem solving framework without SVG.
+         4. Text Content: Kept strictly in Hinglish as per source.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-50 min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-stone-800">FAANG <span class="text-indigo-600">DSA Roadmap</span> 🚀</h1>
+                <p class="text-sm text-stone-500 hidden sm:block">Topic-wise Checklist & Patterns for Product-Based Companies</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <p class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Total Progress</p>
+                    <p class="text-xl font-bold text-indigo-600" id="global-progress-text">0%</p>
+                </div>
+                <div class="w-12 h-12 relative">
+                    <canvas id="miniProgressChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- Left Column: Strategy & Analytics (Sticky on Desktop) -->
+        <div class="lg:col-span-4 space-y-8">
+            
+            <!-- Intro & Context -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-stone-100">
+                <h2 class="text-lg font-bold text-stone-800 mb-2">👋 Bhai, Start Here!</h2>
+                <p class="text-stone-600 text-sm mb-4 leading-relaxed">
+                    FAANG crack karne ke liye sirf code ratna nahi, <strong>patterns</strong> samajhna zaroori hai. Ye tool tumhe structured way mein guide karega. 
+                    <br><br>
+                    Niche charts dekho apni progress track karne ke liye aur "Think & Solve" framework ko har question pe apply karo.
+                </p>
+            </div>
+
+            <!-- Visual: Topic Weightage -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-stone-100">
+                <h3 class="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-4">Topic Distribution</h3>
+                <div class="chart-container h-64">
+                    <canvas id="topicBarChart"></canvas>
+                </div>
+                <p class="text-xs text-stone-400 mt-2 text-center">Number of key patterns per module</p>
+            </div>
+
+            <!-- How to Think Framework -->
+            <div class="bg-indigo-50 rounded-xl p-6 border border-indigo-100">
+                <h3 class="text-lg font-bold text-indigo-900 mb-4">🧠 How to Think (6-Step)</h3>
+                <div class="space-y-4 relative pl-4 border-l-2 border-indigo-200" id="framework-container">
+                    <!-- Steps injected via JS -->
+                </div>
+            </div>
+
+            <!-- Pro Tips -->
+            <div class="bg-amber-50 rounded-xl p-6 border border-amber-100">
+                <h3 class="text-lg font-bold text-amber-900 mb-3">💡 Pro Tips & Tricks</h3>
+                <ul class="space-y-2 text-sm text-amber-800 list-disc list-inside" id="tips-container">
+                    <!-- Tips injected via JS -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Column: The Roadmap (Checklist) -->
+        <div class="lg:col-span-8">
+            
+            <!-- Section Header -->
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-stone-800">Topic-Wise Roadmap</h2>
+                <p class="text-stone-600 mt-1">Basic se Advanced tak sab cover kiya hai. Topic select karo aur patterns tick karo.</p>
+                
+                <!-- Filters -->
+                <div class="flex gap-2 mt-4 overflow-x-auto pb-2 custom-scrollbar">
+                    <button class="px-4 py-2 bg-stone-800 text-white rounded-full text-sm font-medium transition hover:bg-stone-700 whitespace-nowrap" onclick="filterTopics('all')">All Topics</button>
+                    <button class="px-4 py-2 bg-white border border-stone-300 text-stone-600 rounded-full text-sm font-medium transition hover:bg-stone-50 whitespace-nowrap" onclick="filterTopics('Core')">Core (Arrays/Strings)</button>
+                    <button class="px-4 py-2 bg-white border border-stone-300 text-stone-600 rounded-full text-sm font-medium transition hover:bg-stone-50 whitespace-nowrap" onclick="filterTopics('Algorithms')">Algorithms</button>
+                    <button class="px-4 py-2 bg-white border border-stone-300 text-stone-600 rounded-full text-sm font-medium transition hover:bg-stone-50 whitespace-nowrap" onclick="filterTopics('Advanced')">Advanced</button>
+                </div>
+            </div>
+
+            <!-- Accordion Container -->
+            <div id="roadmap-container" class="space-y-4">
+                <!-- Topics will be generated here -->
+            </div>
+
+            <!-- Unseen Problems Section -->
+            <div class="mt-8 bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                <div class="p-6 bg-stone-50 border-b border-stone-200">
+                    <h3 class="text-lg font-bold text-stone-800">🧩 Handling Unseen Problems</h3>
+                    <p class="text-sm text-stone-500">Jab question naya lage, toh ye logic lagao.</p>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-white border rounded-lg hover:shadow-md transition">
+                        <span class="text-2xl block mb-2">🤏</span>
+                        <h4 class="font-bold text-sm text-stone-800">Simplify</h4>
+                        <p class="text-xs text-stone-600 mt-1">Constraints chota karo. N=5 pe socho.</p>
+                    </div>
+                    <div class="p-4 bg-white border rounded-lg hover:shadow-md transition">
+                        <span class="text-2xl block mb-2">🔄</span>
+                        <h4 class="font-bold text-sm text-stone-800">Reverse Thinking</h4>
+                        <p class="text-xs text-stone-600 mt-1">Output se piche jao. Target state kya hai?</p>
+                    </div>
+                    <div class="p-4 bg-white border rounded-lg hover:shadow-md transition">
+                        <span class="text-2xl block mb-2">🏗️</span>
+                        <h4 class="font-bold text-sm text-stone-800">DS Rotation</h4>
+                        <p class="text-xs text-stone-600 mt-1">Hash Map? Stack? Heap? Har DS fit karke dekho.</p>
+                    </div>
+                    <div class="p-4 bg-white border rounded-lg hover:shadow-md transition">
+                        <span class="text-2xl block mb-2">🔗</span>
+                        <h4 class="font-bold text-sm text-stone-800">Graph Viz</h4>
+                        <p class="text-xs text-stone-600 mt-1">Elements ko nodes aur relation ko edges maano.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-stone-200 mt-12 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-stone-400 text-sm">
+            <p>Generated for FAANG DSA Preparation.</p>
+            <p class="mt-2">Keep Grinding. 🚀</p>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        // Data Source from Source Report
+        const frameworkSteps = [
+            { title: "Clarify & Understand", desc: "Constraints pucho. Input/Output clear karo. Jaldi mat karo." },
+            { title: "Dry Run", desc: "Paper pe 1-2 cases solve karo. Edge cases (Empty, Negatives) socho." },
+            { title: "Brute Force First", desc: "Sabse basic solution (O(N²)) batao taaki darr khatam ho." },
+            { title: "Optimize", desc: "Bottlenecks dhundo. Extra space ya Sorting use kar sakte hain?" },
+            { title: "Pseudo Code", desc: "Interviewer ko logic samjhao code likhne se pehle." },
+            { title: "Clean Coding", desc: "Readable variables use karo (e.g., currentSum)." }
+        ];
+
+        const proTips = [
+            "Space-Time Tradeoff: Time kam karna hai to Hash Map use karo.",
+            "Constraints N<=10^5 matlab O(N log N) solution chahiye.",
+            "Constraints N<=20 matlab O(2^N) Backtracking chalegi.",
+            "XOR (^) use karo 'Unique/Missing' find karne ke liye.",
+            "Cycle detection ke liye Slow & Fast Pointer (Tortoise/Hare) lagao."
+        ];
+
+        const roadmapData = [
+            {
+                id: 1,
+                title: "Arrays & Strings",
+                category: "Core",
+                desc: "Interview ka bread and butter. Patterns sabse zaroori hain.",
+                items: [
+                    "Reverse Array/String (Two Pointers)",
+                    "Pair with Target Sum (Sorted Array - Two Pointers)",
+                    "Remove Duplicates (Two Pointers)",
+                    "Trapping Rain Water (Very Important)",
+                    "Container With Most Water",
+                    "Fixed Size Window (Sliding Window)",
+                    "Variable Size Window (Longest Substring)",
+                    "Minimum Window Substring",
+                    "Kadane’s Algorithm (Max Subarray Sum)",
+                    "Dutch National Flag (Sort 0s, 1s, 2s)",
+                    "Boyer-Moore Voting Algorithm (Majority Element)",
+                    "Prefix Sum / Suffix Sum",
+                    "KMP Algorithm (Pattern Matching)",
+                    "Rabin-Karp (Rolling Hash)"
+                ]
+            },
+            {
+                id: 2,
+                title: "Binary Search",
+                category: "Algorithms",
+                desc: "Search Space reduce karna seekho, sirf element dhundhna nahi.",
+                items: [
+                    "Standard Binary Search (Iterative & Recursive)",
+                    "Search on Answer Pattern (Allocate Books, Aggressive Cows)",
+                    "Search in Rotated Sorted Array",
+                    "Find Peak Element",
+                    "First and Last Occurrence",
+                    "Median of Two Sorted Arrays (Hard)"
+                ]
+            },
+            {
+                id: 3,
+                title: "Sorting Algorithms",
+                category: "Algorithms",
+                desc: "Divide & Conquer logic important hai.",
+                items: [
+                    "Merge Sort Logic (Count Inversions)",
+                    "Quick Sort Partition Logic (Kth Largest)",
+                    "Heap Sort Logic",
+                    "Cyclic Sort (Numbers 1 to N - Missing/Duplicate)"
+                ]
+            },
+            {
+                id: 4,
+                title: "Recursion",
+                category: "Core",
+                desc: "Backbone of Trees, Graphs & DP.",
+                items: [
+                    "Basic: Factorial, Fibonacci, Power(x,n)",
+                    "Include/Exclude Pattern (Subsequences/Subsets)",
+                    "Permutations of String/Array",
+                    "Combination Sum I & II",
+                    "Tower of Hanoi / Josephus Problem",
+                    "Recursion on Arrays (Linear Search)"
+                ]
+            },
+            {
+                id: 5,
+                title: "Linked List",
+                category: "Core",
+                desc: "Pointer manipulation check karne ke liye best.",
+                items: [
+                    "Fast & Slow Pointers (Cycle/Middle)",
+                    "In-place Reversal (Reverse Nodes in K-Group)",
+                    "Merge Two Sorted Lists",
+                    "Merge K Sorted Lists (Heap)",
+                    "Intersection Point"
+                ]
+            },
+            {
+                id: 6,
+                title: "Stacks & Queues",
+                category: "Core",
+                desc: "Pattern recognition tricky ho sakta hai.",
+                items: [
+                    "Monotonic Stack (Next Greater/Smaller)",
+                    "Largest Rectangle in Histogram",
+                    "Stock Span Problem",
+                    "Valid Parentheses",
+                    "Min Stack Implementation",
+                    "Sliding Window Maximum (Deque)",
+                    "LRU Cache / LFU Cache Design"
+                ]
+            },
+            {
+                id: 7,
+                title: "Trees (Binary & BST)",
+                category: "Core",
+                desc: "Recursion ka asli khel.",
+                items: [
+                    "BFS (Level Order)",
+                    "DFS (Inorder, Preorder, Postorder)",
+                    "Vertical / Boundary / Zig-Zag Traversal",
+                    "Construct Tree from Inorder & Preorder",
+                    "Lowest Common Ancestor (LCA)",
+                    "Tree Views (Top, Bottom, Left, Right)",
+                    "Diameter / Max Path Sum",
+                    "Morris Traversal (O(1) Space)",
+                    "Validate BST",
+                    "LCA in BST",
+                    "Inorder Successor/Predecessor"
+                ]
+            },
+            {
+                id: 8,
+                title: "Heaps",
+                category: "Algorithms",
+                desc: "Keyword: 'Top K' or 'K-th Smallest'.",
+                items: [
+                    "Top K Elements Pattern",
+                    "Merge K Sorted Arrays",
+                    "Median from Data Stream (Two Heaps)",
+                    "Task Scheduler"
+                ]
+            },
+            {
+                id: 9,
+                title: "Graphs",
+                category: "Advanced",
+                desc: "Critical for Senior Roles.",
+                items: [
+                    "BFS (Shortest path unweighted)",
+                    "DFS (Cycle detection, Path finding)",
+                    "Topological Sort (Kahn's & DFS)",
+                    "Dijkstra’s Algo (Weighted Shortest Path)",
+                    "Bellman-Ford Algo (Negative weights)",
+                    "Floyd-Warshall Algo (All-pairs)",
+                    "Prim’s & Kruskal’s (MST)",
+                    "Disjoint Set (Union-Find)",
+                    "Kosaraju’s / Tarjan’s (SCC)",
+                    "Bridges & Articulation Points"
+                ]
+            },
+            {
+                id: 10,
+                title: "Dynamic Programming",
+                category: "Advanced",
+                desc: "Pattern pakad liya to easy hai.",
+                items: [
+                    "1D DP (Climbing Stairs, House Robber)",
+                    "Longest Increasing Subsequence (LIS)",
+                    "LCS (Longest Common Subsequence)",
+                    "Edit Distance",
+                    "Unique Paths in Grid",
+                    "0/1 Knapsack",
+                    "Unbounded Knapsack (Coin Change)",
+                    "Subset Sum / Partition Equal Subset Sum",
+                    "Matrix Chain Multiplication (Burst Balloons)",
+                    "DP on Trees"
+                ]
+            },
+            {
+                id: 11,
+                title: "Advanced / Bonus",
+                category: "Advanced",
+                desc: "Interviewer ko impress karne ke liye.",
+                items: [
+                    "Trie (Prefix Tree - Autocomplete)",
+                    "Bit Manipulation (XOR, Masking)",
+                    "Segment Trees / Fenwick Trees",
+                    "Backtracking (N-Queens, Sudoku, Rat in Maze)"
+                ]
+            }
+        ];
+
+        // State Management
+        let appState = {
+            checkedItems: new Set(), // Using Set to store unique IDs of checked items
+            expandedTopic: null
+        };
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFramework();
+            renderTips();
+            renderRoadmap();
+            initCharts();
+            updateStats();
+        });
+
+        // --- Rendering Logic ---
+
+        function renderFramework() {
+            const container = document.getElementById('framework-container');
+            container.innerHTML = frameworkSteps.map((step, index) => `
+                <div class="relative pb-4">
+                    <div class="absolute -left-[25px] top-1 h-4 w-4 rounded-full bg-indigo-500 border-2 border-white"></div>
+                    <h4 class="text-sm font-bold text-indigo-800">Step ${index + 1}: ${step.title}</h4>
+                    <p class="text-xs text-indigo-600 mt-1">${step.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderTips() {
+            const container = document.getElementById('tips-container');
+            container.innerHTML = proTips.map(tip => `<li>${tip}</li>`).join('');
+        }
+
+        function renderRoadmap(filter = 'all') {
+            const container = document.getElementById('roadmap-container');
+            container.innerHTML = '';
+
+            roadmapData.forEach(topic => {
+                if (filter !== 'all' && topic.category !== filter) return;
+
+                // Calculate progress for this specific topic
+                const totalTopicItems = topic.items.length;
+                const checkedTopicItems = topic.items.filter((_, idx) => appState.checkedItems.has(`${topic.id}-${idx}`)).length;
+                const progressPct = Math.round((checkedTopicItems / totalTopicItems) * 100);
+
+                const div = document.createElement('div');
+                div.className = 'bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden';
+                div.innerHTML = `
+                    <div class="p-4 cursor-pointer hover:bg-stone-50 transition flex items-center justify-between" onclick="toggleTopic(${topic.id})">
+                        <div class="flex items-center gap-4">
+                            <div class="h-10 w-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 font-bold text-lg">
+                                ${topic.title.charAt(0)}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-stone-800">${topic.title}</h3>
+                                <p class="text-xs text-stone-500">${topic.desc}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right">
+                                <span class="text-xs font-semibold text-indigo-600 block">${progressPct}%</span>
+                                <div class="w-16 h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-indigo-500" style="width: ${progressPct}%"></div>
+                                </div>
+                            </div>
+                            <span class="transform transition-transform ${appState.expandedTopic === topic.id ? 'rotate-180' : ''}">▼</span>
+                        </div>
+                    </div>
+                    <div class="${appState.expandedTopic === topic.id ? 'block' : 'hidden'} border-t border-stone-100 bg-stone-50 p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${topic.items.map((item, idx) => `
+                                <label class="flex items-start gap-3 p-2 rounded-lg hover:bg-white transition cursor-pointer group">
+                                    <input type="checkbox" 
+                                           class="mt-1 form-checkbox h-4 w-4 text-indigo-600 border-stone-300 rounded focus:ring-indigo-500"
+                                           ${appState.checkedItems.has(`${topic.id}-${idx}`) ? 'checked' : ''}
+                                           onchange="toggleItem('${topic.id}-${idx}')">
+                                    <span class="text-sm text-stone-700 group-hover:text-stone-900 ${appState.checkedItems.has(`${topic.id}-${idx}`) ? 'line-through text-stone-400' : ''}">${item}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- Interaction Logic ---
+
+        function toggleTopic(id) {
+            if (appState.expandedTopic === id) {
+                appState.expandedTopic = null;
+            } else {
+                appState.expandedTopic = id;
+            }
+            // Re-render to show/hide logic (in a real React app this is auto, here we manual)
+            // To prevent losing focus/scroll, we just toggle classes in a smarter way if we didn't use full re-render.
+            // But full re-render is safer for state consistency in this simple script.
+            // Optimization: Just filter variable usage.
+            const currentFilter = document.querySelector('button[onclick*="filterTopics"].bg-stone-800') 
+                                  ? document.querySelector('button[onclick*="filterTopics"].bg-stone-800').getAttribute('onclick').split("'")[1] 
+                                  : 'all';
+            renderRoadmap(currentFilter);
+        }
+
+        function filterTopics(category) {
+            // Update button styles
+            const buttons = document.querySelectorAll('button[onclick*="filterTopics"]');
+            buttons.forEach(btn => {
+                if(btn.getAttribute('onclick').includes(category)) {
+                    btn.className = "px-4 py-2 bg-stone-800 text-white rounded-full text-sm font-medium transition hover:bg-stone-700 whitespace-nowrap";
+                } else {
+                    btn.className = "px-4 py-2 bg-white border border-stone-300 text-stone-600 rounded-full text-sm font-medium transition hover:bg-stone-50 whitespace-nowrap";
+                }
+            });
+            renderRoadmap(category);
+        }
+
+        function toggleItem(uniqueId) {
+            if (appState.checkedItems.has(uniqueId)) {
+                appState.checkedItems.delete(uniqueId);
+            } else {
+                appState.checkedItems.add(uniqueId);
+            }
+            updateStats();
+            
+            // Re-render only current view to reflect strikethrough and progress bars
+            const currentFilter = document.querySelector('button[onclick*="filterTopics"].bg-stone-800') 
+                                  ? document.querySelector('button[onclick*="filterTopics"].bg-stone-800').getAttribute('onclick').split("'")[1] 
+                                  : 'all';
+            renderRoadmap(currentFilter);
+        }
+
+        // --- Charts & Stats ---
+
+        let barChartInstance = null;
+        let miniChartInstance = null;
+
+        function initCharts() {
+            // 1. Topic Bar Chart
+            const ctxBar = document.getElementById('topicBarChart').getContext('2d');
+            const labels = roadmapData.map(t => t.title.split(' ')[0]); // First word only for space
+            const dataCounts = roadmapData.map(t => t.items.length);
+
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Patterns/Problems',
+                        data: dataCounts,
+                        backgroundColor: '#6366f1',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: false } },
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+
+            // 2. Mini Progress Doughnut
+            const ctxMini = document.getElementById('miniProgressChart').getContext('2d');
+            miniChartInstance = new Chart(ctxMini, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Done', 'Remaining'],
+                    datasets: [{
+                        data: [0, 100],
+                        backgroundColor: ['#4f46e5', '#e2e8f0'],
+                        borderWidth: 0,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { tooltip: { enabled: false }, legend: { display: false } },
+                    events: [] // Disable hover events for performance
+                }
+            });
+        }
+
+        function updateStats() {
+            // Calculate total items
+            let totalItems = 0;
+            roadmapData.forEach(t => totalItems += t.items.length);
+            
+            const checkedCount = appState.checkedItems.size;
+            const pct = Math.round((checkedCount / totalItems) * 100);
+
+            // Update Header Text
+            document.getElementById('global-progress-text').innerText = `${pct}%`;
+
+            // Update Mini Chart
+            if (miniChartInstance) {
+                miniChartInstance.data.datasets[0].data = [checkedCount, totalItems - checkedCount];
+                miniChartInstance.update();
+            }
+        }
+
+    </script>
+</body>
+</html>
